@@ -20,7 +20,9 @@
 
       <form action="" name="absen-bpsdmp-kominfo-mdo">
         <label for="nama">Nama:</label>
-        <input type="text" id="nama" name="nama" required />
+        <select id="nama" name="nama" required>
+          <option value="">-- Pilih Nama --</option>
+        </select>
         <br />
 
         <label for="jabatan">Posisi:</label>
@@ -47,33 +49,41 @@
     </div>
 
     <script>
-      if (sessionStorage.getItem("formSubmitted") === "true") {
-        // Redirect to berhasil.html if form is already submitted
-        window.location.href = "berhasil.html";
-      }
-
       const scriptURL =
-        "https://script.google.com/macros/s/AKfycbxu59PBKLplLgdc8Uq2tPJpRui6Du-fCCjfjZO51njeWCzii4SD8jvKtX7prmxJd6cX/exec";
+        "https://script.google.com/macros/s/AKfycbzXJgOL7uqMX3XrZX0vKLIlKUefJZyRCze4-DQtAiNp-ulHeU9xO8ucqyyZlVn-MsYA/exec"; // Ganti dengan URL Web App Anda
+      const namesURL = scriptURL + "?action=getNames";
+
+      // Ambil daftar nama dari Sheet2 untuk isi dropdown
+      fetch(namesURL)
+        .then((res) => res.json())
+        .then((data) => {
+          const namaSelect = document.getElementById("nama");
+          data.forEach((nama) => {
+            const option = document.createElement("option");
+            option.value = nama;
+            option.textContent = nama;
+            namaSelect.appendChild(option);
+          });
+        })
+        .catch((err) => console.error("Gagal mengambil data nama:", err));
+
       const form = document.forms["absen-bpsdmp-kominfo-mdo"];
       const spinner = document.getElementById("spinner");
 
       form.addEventListener("submit", (e) => {
         e.preventDefault();
-        spinner.style.display = "block"; // Show spinner on submit
+        spinner.style.display = "block"; // Show spinner
         fetch(scriptURL, { method: "POST", body: new FormData(form) })
           .then((response) => {
-            if (!response.ok) {
-              throw new Error("Network response was not ok");
-            }
+            if (!response.ok) throw new Error("Network response was not ok");
             form.reset();
             window.location.href = "berhasil.html"; // Redirect on success
-            console.log("Success!", response);
           })
           .catch((error) => {
             console.error("Error!", error.message);
           })
           .finally(() => {
-            spinner.style.display = "none"; // Hide spinner after submission
+            spinner.style.display = "none"; // Hide spinner
           });
       });
     </script>
