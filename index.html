@@ -96,7 +96,6 @@
         canvas.style.display = "block";
         fotoInput.value = canvas.toDataURL("image/png");
 
-        // tampilkan tombol reset setelah ambil foto
         resetBtn.style.display = "inline-block";
       });
 
@@ -109,11 +108,37 @@
         resetBtn.style.display = "none";
       });
 
-      // Geolocation
-      navigator.geolocation.getCurrentPosition((pos) => {
-        document.getElementById("latitude").value = pos.coords.latitude;
-        document.getElementById("longitude").value = pos.coords.longitude;
-      });
+      // ✅ Geolocation wajib aktif
+      let lokasiAktif = false; // status lokasi
+      const latitudeInput = document.getElementById("latitude");
+      const longitudeInput = document.getElementById("longitude");
+
+      function mintaLokasi() {
+        if (!navigator.geolocation) {
+          alert(
+            "Browser Anda tidak mendukung GPS, silakan gunakan perangkat lain."
+          );
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            latitudeInput.value = pos.coords.latitude;
+            longitudeInput.value = pos.coords.longitude;
+            lokasiAktif = true;
+          },
+          (err) => {
+            lokasiAktif = false;
+            alert(
+              "⚠️ Anda harus menyalakan lokasi (GPS) untuk mengisi absensi!"
+            );
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+      }
+
+      // jalankan minta lokasi saat halaman dibuka
+      mintaLokasi();
 
       // Submit form
       const form = document.getElementById("absensi-form");
@@ -122,10 +147,16 @@
       form.addEventListener("submit", (e) => {
         e.preventDefault();
 
+        // ✅ Cek apakah lokasi aktif
+        if (!lokasiAktif || !latitudeInput.value || !longitudeInput.value) {
+          alert("⚠️ Tidak bisa absen, aktifkan lokasi (GPS) perangkat Anda!");
+          return;
+        }
+
         // ✅ Cek apakah foto sudah diambil
         if (!fotoInput.value) {
           alert("Silakan ambil foto terlebih dahulu sebelum submit!");
-          return; // hentikan submit
+          return;
         }
 
         spinner.style.display = "block";
