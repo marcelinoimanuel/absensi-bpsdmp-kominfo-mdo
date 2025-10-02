@@ -13,21 +13,24 @@
         class="profile-pic"
       />
       <h2 class="judul">Login Absensi Pegawai</h2>
+
       <form id="login-form">
         <label for="nama">Nama:</label>
         <select id="nama" required>
           <option value="">-- Pilih Nama --</option>
         </select>
+        <br />
         <button type="submit">Login</button>
       </form>
     </div>
 
     <script>
+      // URL Web App Google Apps Script (yang sama dengan index.html)
       const scriptURL =
         "https://script.google.com/macros/s/AKfycbxCqPJOG5OpeHnm8l_ypX-7nwu20jK_g-e0hz-k2Q7IzcL4wu5PnRjgO4jmy6y7NN_C/exec";
 
       // Ambil daftar nama dari Sheet2
-      fetch(namesURL)
+      fetch(`${scriptURL}?action=getNames`)
         .then((res) => res.json())
         .then((data) => {
           const namaSelect = document.getElementById("nama");
@@ -37,14 +40,21 @@
             opt.textContent = nama;
             namaSelect.appendChild(opt);
           });
+        })
+        .catch((err) => {
+          console.error("Gagal ambil nama:", err);
+          alert("Gagal memuat daftar nama, coba refresh halaman.");
         });
 
+      // Proses login
       document.getElementById("login-form").addEventListener("submit", (e) => {
         e.preventDefault();
         const nama = document.getElementById("nama").value;
         if (nama) {
           sessionStorage.setItem("loginNama", nama);
-          window.location.href = "index.html";
+          window.location.href = "index.html"; // pindah ke form absensi
+        } else {
+          alert("Silakan pilih nama terlebih dahulu!");
         }
       });
     </script>

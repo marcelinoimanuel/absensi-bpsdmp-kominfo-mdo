@@ -17,7 +17,7 @@
 
       <h2 class="judul">ABSENSI PEGAWAI</h2>
       <h3 class="title">BPSDMP KOMINFO MANADO</h3>
-      <h3 id="user"></h3>
+      <h3 id="user" class="title"></h3>
 
       <form id="absensi-form" name="absen-bpsdmp-kominfo-mdo">
         <input type="hidden" name="nama" id="nama" />
@@ -43,7 +43,13 @@
           <video id="video" autoplay playsinline class="webcam"></video>
           <br />
           <button type="button" id="capture">Ambil Foto</button>
-          <canvas id="canvas" class="webcam"></canvas>
+          <br />
+          <br />
+          <button type="button" id="resetFoto" style="display: none">
+            Hapus Foto
+          </button>
+          <br /><br />
+          <canvas id="canvas" class="webcam" style="display: none"></canvas>
           <br />
         </div>
 
@@ -75,6 +81,8 @@
       const video = document.getElementById("video");
       const canvas = document.getElementById("canvas");
       const fotoInput = document.getElementById("foto");
+      const resetBtn = document.getElementById("resetFoto");
+
       navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
         video.srcObject = stream;
       });
@@ -87,6 +95,18 @@
           .drawImage(video, 0, 0, canvas.width, canvas.height);
         canvas.style.display = "block";
         fotoInput.value = canvas.toDataURL("image/png");
+
+        // tampilkan tombol reset setelah ambil foto
+        resetBtn.style.display = "inline-block";
+      });
+
+      // tombol hapus foto
+      resetBtn.addEventListener("click", () => {
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        canvas.style.display = "none";
+        fotoInput.value = "";
+        resetBtn.style.display = "none";
       });
 
       // Geolocation
