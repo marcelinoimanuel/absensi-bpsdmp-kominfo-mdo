@@ -50,6 +50,13 @@ body {
     display: flex;
 }
 
+.webcam{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 220px;
+}
+
 /* Styling untuk form */
 form {
     background-color: #2196f3;

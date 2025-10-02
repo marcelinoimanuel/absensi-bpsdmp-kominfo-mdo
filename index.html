@@ -17,13 +17,10 @@
 
       <h2 class="judul">ABSENSI PEGAWAI</h2>
       <h3 class="title">BPSDMP KOMINFO MANADO</h3>
+      <h3 id="user"></h3>
 
-      <form action="" name="absen-bpsdmp-kominfo-mdo">
-        <label for="nama">Nama:</label>
-        <select id="nama" name="nama" required>
-          <option value="">-- Pilih Nama --</option>
-        </select>
-        <br />
+      <form id="absensi-form" name="absen-bpsdmp-kominfo-mdo">
+        <input type="hidden" name="nama" id="nama" />
 
         <label for="jabatan">Posisi:</label>
         <select id="jabatan" name="posisi" required>
@@ -41,49 +38,94 @@
         </select>
         <br />
 
+        <!-- Webcam -->
+        <div>
+          <video id="video" autoplay playsinline class="webcam"></video>
+          <br />
+          <button type="button" id="capture">Ambil Foto</button>
+          <canvas id="canvas" class="webcam"></canvas>
+          <br />
+        </div>
+
+        <input type="hidden" name="foto" id="foto" />
+        <input type="hidden" name="latitude" id="latitude" />
+        <input type="hidden" name="longitude" id="longitude" />
+
         <button type="submit">Submit</button>
       </form>
 
       <div class="spinner" id="spinner"></div>
-      <!-- Loading spinner -->
     </div>
 
     <script>
       const scriptURL =
-        "https://script.google.com/macros/s/AKfycbzXJgOL7uqMX3XrZX0vKLIlKUefJZyRCze4-DQtAiNp-ulHeU9xO8ucqyyZlVn-MsYA/exec"; // Ganti dengan URL Web App Anda
-      const namesURL = scriptURL + "?action=getNames";
+        "https://script.google.com/macros/s/AKfycbxCqPJOG5OpeHnm8l_ypX-7nwu20jK_g-e0hz-k2Q7IzcL4wu5PnRjgO4jmy6y7NN_C/exec";
 
-      // Ambil daftar nama dari Sheet2 untuk isi dropdown
-      fetch(namesURL)
-        .then((res) => res.json())
-        .then((data) => {
-          const namaSelect = document.getElementById("nama");
-          data.forEach((nama) => {
-            const option = document.createElement("option");
-            option.value = nama;
-            option.textContent = nama;
-            namaSelect.appendChild(option);
-          });
-        })
-        .catch((err) => console.error("Gagal mengambil data nama:", err));
+      // cek login
+      const namaLogin = sessionStorage.getItem("loginNama");
+      if (!namaLogin) {
+        window.location.href = "login.html";
+      } else {
+        document.getElementById("user").textContent =
+          "Login sebagai: " + namaLogin;
+        document.getElementById("nama").value = namaLogin;
+      }
 
-      const form = document.forms["absen-bpsdmp-kominfo-mdo"];
+      // Webcam
+      const video = document.getElementById("video");
+      const canvas = document.getElementById("canvas");
+      const fotoInput = document.getElementById("foto");
+      navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+        video.srcObject = stream;
+      });
+
+      document.getElementById("capture").addEventListener("click", () => {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas
+          .getContext("2d")
+          .drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.style.display = "block";
+        fotoInput.value = canvas.toDataURL("image/png");
+      });
+
+      // Geolocation
+      navigator.geolocation.getCurrentPosition((pos) => {
+        document.getElementById("latitude").value = pos.coords.latitude;
+        document.getElementById("longitude").value = pos.coords.longitude;
+      });
+
+      // Submit form
+      const form = document.getElementById("absensi-form");
       const spinner = document.getElementById("spinner");
 
       form.addEventListener("submit", (e) => {
         e.preventDefault();
-        spinner.style.display = "block"; // Show spinner
+
+        // ✅ Cek apakah foto sudah diambil
+        if (!fotoInput.value) {
+          alert("Silakan ambil foto terlebih dahulu sebelum submit!");
+          return; // hentikan submit
+        }
+
+        spinner.style.display = "block";
+
         fetch(scriptURL, { method: "POST", body: new FormData(form) })
-          .then((response) => {
-            if (!response.ok) throw new Error("Network response was not ok");
-            form.reset();
-            window.location.href = "berhasil.html"; // Redirect on success
+          .then((res) => res.json())
+          .then((d) => {
+            if (d.result === "success") {
+              alert("Absensi berhasil!");
+              window.location.href = "berhasil.html";
+            } else {
+              alert("Gagal: " + d.error);
+            }
           })
-          .catch((error) => {
-            console.error("Error!", error.message);
+          .catch((err) => {
+            console.error("Error!", err.message);
+            alert("Terjadi kesalahan saat submit!");
           })
           .finally(() => {
-            spinner.style.display = "none"; // Hide spinner
+            spinner.style.display = "none";
           });
       });
     </script>
