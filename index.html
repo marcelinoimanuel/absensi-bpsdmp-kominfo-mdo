@@ -43,8 +43,7 @@
           <video id="video" autoplay playsinline class="webcam"></video>
           <br />
           <button type="button" id="capture">Ambil Foto</button>
-          <br />
-          <br />
+          <br /><br />
           <button type="button" id="resetFoto" style="display: none">
             Hapus Foto
           </button>
@@ -95,7 +94,6 @@
           .drawImage(video, 0, 0, canvas.width, canvas.height);
         canvas.style.display = "block";
         fotoInput.value = canvas.toDataURL("image/png");
-
         resetBtn.style.display = "inline-block";
       });
 
@@ -139,6 +137,24 @@
 
       // jalankan minta lokasi saat halaman dibuka
       mintaLokasi();
+
+      // ✅ cek lokasi berkala (tiap 10 detik)
+      setInterval(() => {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            latitudeInput.value = pos.coords.latitude;
+            longitudeInput.value = pos.coords.longitude;
+            lokasiAktif = true;
+          },
+          (err) => {
+            lokasiAktif = false;
+            alert("⚠️ Lokasi dimatikan, Anda akan dikeluarkan dari sistem!");
+            sessionStorage.clear();
+            window.location.href = "login.html";
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+      }, 10000);
 
       // Submit form
       const form = document.getElementById("absensi-form");

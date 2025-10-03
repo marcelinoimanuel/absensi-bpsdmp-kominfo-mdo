@@ -51,12 +51,53 @@
           alert("Gagal memuat daftar nama, coba refresh halaman.");
         });
 
+      // ✅ Validasi lokasi wajib aktif
+      let lokasiAktif = false;
+      let userLat = null;
+      let userLng = null;
+
+      function cekLokasi() {
+        if (!navigator.geolocation) {
+          alert(
+            "Browser Anda tidak mendukung GPS, silakan gunakan perangkat lain."
+          );
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            lokasiAktif = true;
+            userLat = pos.coords.latitude;
+            userLng = pos.coords.longitude;
+          },
+          (err) => {
+            lokasiAktif = false;
+            alert("⚠️ Anda harus menyalakan lokasi (GPS) untuk login!");
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+      }
+
+      // jalankan cek lokasi saat halaman dibuka
+      cekLokasi();
+
       // Proses login
       document.getElementById("login-form").addEventListener("submit", (e) => {
         e.preventDefault();
         const nama = document.getElementById("nama").value;
+
+        // 🚫 Jika lokasi belum aktif → hentikan login
+        if (!lokasiAktif || !userLat || !userLng) {
+          alert("⚠️ Tidak bisa login, aktifkan lokasi (GPS) perangkat Anda!");
+          return;
+        }
+
         if (nama) {
           sessionStorage.setItem("loginNama", nama);
+          // opsional: simpan koordinat ke sessionStorage juga
+          sessionStorage.setItem("loginLat", userLat);
+          sessionStorage.setItem("loginLng", userLng);
+
           window.location.href = "index.html"; // pindah ke form absensi
         } else {
           alert("Silakan pilih nama terlebih dahulu!");
